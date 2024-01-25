@@ -7,6 +7,7 @@ on:
       - "**"
 env:
   APP_NAME: java-app
+  HOSTNAME: sw-goo.arch.beescloud.com
   UNIQUE_PREFIX: sw
 jobs:
   build-and-publish:
