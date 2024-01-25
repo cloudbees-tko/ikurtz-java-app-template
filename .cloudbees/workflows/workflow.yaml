@@ -59,6 +59,9 @@ jobs:
       chart-location: ${{ steps.helm-publish.outputs.chart }}
       chart-version: ${{ steps.helm-publish.outputs.version }}
   deploy:
+    environment: dev
+    needs:
+      - build-and-publish
     steps:
       - uses: cloudbees-io/configure-aws-credentials@v1
         name: Configure AWS Credentials
@@ -85,14 +88,12 @@ jobs:
           values: |
             ingress:
               annotations:
-                external-dns.alpha.kubernetes.io/hostname: ${{ env.HOSTNAME }}
+                external-dns.alpha.kubernetes.io/hostname: ${{ vars.HOSTNAME }}
               hosts:
-                - host: "${{ env.HOSTNAME }}"
+                - host: "${{ vars.HOSTNAME }}"
                   paths:
                     - path: /
                       pathType: Prefix
                 - paths:
                     - path: /
                       pathType: Prefix
-    needs:
-      - build-and-publish
