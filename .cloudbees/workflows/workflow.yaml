@@ -60,3 +60,4 @@ jobs:
         with:
           chart: ${{ steps.helmpkg.outputs.chart }}
           remote: oci://${{ steps.aws-login.outputs.aws-account-id }}.dkr.ecr.us-east-1.amazonaws.com
+          
