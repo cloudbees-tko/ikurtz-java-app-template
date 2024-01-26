@@ -7,18 +7,20 @@ on:
       - "**"
 env:
   APP_NAME: java-app
+  HOSTNAME: sw-java-app.arch.beescloud.com
   UNIQUE_PREFIX: sw
 jobs:
   build-and-publish:
     steps:
       - uses: cloudbees-io/checkout@v1
         name: Checkout
+
       - uses: docker://maven:3.9.6-eclipse-temurin-17
         name: Build JAR
         shell: sh
         run: |
           mvn clean install
-      - uses: cloudbees-io/configure-aws-credentials@v1
+      - uses: tko-configure-aws-credentials
         name: Login to AWS
         id: aws-login
         with:
@@ -27,8 +29,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
           role-to-assume: cloudbees-infra-mgmt
           role-duration-seconds: "3600"
+
       - uses: cloudbees-io/configure-ecr-credentials@v1
         name: Configure container registry
+
       - uses: cloudbees-io/kaniko@v1
         name: Build and publish container image
         id: image-publish
@@ -36,6 +40,7 @@ jobs:
           destination: ${{ steps.aws-login.outputs.aws-account-id
             }}.dkr.ecr.us-east-1.amazonaws.com/${{ env.APP_NAME }}-image:${{
             env.UNIQUE_PREFIX }}-${{ cloudbees.version }}
+
       - uses: cloudbees-io/helm-package@v1
         name: Package Helm chart
         id: helmpkg
@@ -47,6 +52,7 @@ jobs:
             image:
               repository:  ${{ steps.aws-login.outputs.aws-account-id }}.dkr.ecr.us-east-1.amazonaws.com/${{ env.APP_NAME }}-image
               tag: ${{ steps.image-publish.outputs.tag }}
+
       - uses: cloudbees-io/helm-push@v1
         name: Publish Helm chart
         id: helm-publish
@@ -62,7 +68,7 @@ jobs:
     needs:
       - build-and-publish
     steps:
-      - uses: cloudbees-io/configure-aws-credentials@v1
+      - uses: tko-configure-aws-credentials
         name: Configure AWS Credentials
         with:
           aws-access-key-id: ${{ vars.aws_access_key_id }}
